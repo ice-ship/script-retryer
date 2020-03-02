@@ -1,0 +1,33 @@
+{
+    "manifestVersion": 1,
+    "id": "command-repeater",
+    "name": "Command Reapater tool",
+    "version": "0.0.8",
+    "publisher": "iceship",
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],    
+    "description": "Command repeater tool which should repeat command after some delay",
+    "categories": [
+        "Azure Pipelines"
+    ],
+    "files": [
+        {
+            "path": "command_repeater"
+        }
+    ],
+    "contributions": [
+        {
+            "id": "custom-build-release-task",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "command_repeater"
+            }
+        }
+    ]
+}

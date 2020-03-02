@@ -1,0 +1,126 @@
+{
+    "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
+    "id": "d195b18e-140a-4df1-83b7-7432a17b96c7",
+    "name": "command-repeater",
+    "friendlyName": "Command repeater",
+    "description": "Repeat bash/powershell command several times with delay.",
+    "helpMarkDown": "",
+    "category": "Utility",
+    "author": "Lukasz Cymanowski (lukcym@wp.pl)",
+    "version": {
+        "Major": 0,
+        "Minor": 1,
+        "Patch": 2
+    },
+    "instanceNameFormat": "Command repeater",
+    "execution": {
+        "Node": {
+            "target": "index.js"
+        }
+    },
+    "visibility": [
+        "Build",
+        "Release"
+    ],
+    "runsOn": [
+        "Agent"
+    ],
+    "inputs": [
+        {
+            "name": "targetInterperter",
+            "type": "string",
+            "label": "Target interpreter",
+            "required": true,
+            "defaultValue": "bash",
+            "helpMarkDown": "Target interpreter: bash or powershell"
+        },
+        {
+            "name": "targetType",
+            "type": "radio",
+            "label": "Type",
+            "required": false,
+            "defaultValue": "filePath",
+            "helpMarkDown": "Target script type: File Path or Inline",
+            "options": {
+                "filePath": "File Path",
+                "inline": "Inline"
+            }
+        },
+        {
+            "name": "filePath",
+            "type": "filePath",
+            "label": "Script Path",
+            "visibleRule": "targetType = filePath",
+            "required": true,
+            "defaultValue": "",
+            "helpMarkDown": "Path of the script to execute. Must be a fully qualified path or relative to $(System.DefaultWorkingDirectory)."
+        },
+        {
+            "name": "arguments",
+            "type": "string",
+            "label": "Arguments",
+            "visibleRule": "targetType = filePath",
+            "required": false,
+            "defaultValue": "",
+            "helpMarkDown": "Arguments passed to the shell script. Either ordinal parameters or named parameters."
+        },
+        {
+            "name": "script",
+            "type": "multiLine",
+            "label": "Script",
+            "visibleRule": "targetType = inline",
+            "required": true,
+            "defaultValue": "# Write your commands here\n\necho 'Hello world'\n",
+            "properties": {
+                "resizable": "true",
+                "rows": "10",
+                "maxLength": "5000"
+            },
+            "helpMarkDown": ""
+        },
+        {
+            "name": "delay",
+            "type": "string",
+            "label": "Delay in seconds before repeat command",
+            "defaultValue": "60",
+            "required": false
+        },
+        {
+            "name": "repeatTimes",
+            "type": "string",
+            "label": "How many timest to repeat",
+            "defaultValue": "5",
+            "required": false
+        },
+        {
+            "name": "workingDirectory",
+            "type": "filePath",
+            "label": "Working Directory",
+            "defaultValue": "",
+            "required": false,
+            "groupName": "advanced"
+        },
+        {
+            "name": "failOnStderr",
+            "type": "boolean",
+            "label": "Fail on Standard Error",
+            "defaultValue": "false",
+            "required": false,
+            "helpMarkDown": "If this is true, this task will fail if any errors are written to the StandardError stream.",
+            "groupName": "advanced"
+        }
+    ],
+    "messages": {
+        "GeneratingScript": "Generating script.",
+        "JS_ExitCode": "Bash exited with code '%s'.",
+        "JS_FormattedCommand": "Formatted command: %s",
+        "JS_InvalidFilePath": "Invalid file path '%s'.",
+        "JS_ScriptContents": "Script contents:",
+        "JS_Stderr": "Bash wrote one or more lines to the standard error stream.",
+        "JS_TranslatePathFailed": "Unable to translate the path '%s' to the Linux file system.",
+        "JS_InvalidInput": "Incorrect value setup for %s field, number required",
+        "JS_MissingExecutableBit": "Executable bit is not set on target script!",
+        "ErrorDetected":"Error detected in attempt %s!",
+        "Waiting":"Waiting %s seconds before next try"
+    }
+}
