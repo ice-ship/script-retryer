@@ -1,18 +1,18 @@
 {
     "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
-    "id": "d195b18e-140a-4df1-83b7-7432a17b96c7",
-    "name": "command-repeater",
-    "friendlyName": "Command repeater",
-    "description": "Repeat bash/powershell command several times with delay.",
+    "id": "e35ddd89-43d7-45d7-9245-0250dd1eec52",
+    "name": "script-retryer",
+    "friendlyName": "Script retryer",
+    "description": "Retry bash/powershell/python script several times with delay.",
     "helpMarkDown": "",
     "category": "Utility",
-    "author": "Lukasz Cymanowski (lukcym@wp.pl)",
+    "author": "Lukasz Cymanowski",
     "version": {
         "Major": 0,
         "Minor": 1,
         "Patch": 2
     },
-    "instanceNameFormat": "Command repeater",
+    "instanceNameFormat": "Script retryer",
     "execution": {
         "Node": {
             "target": "index.js"
@@ -32,7 +32,7 @@
             "label": "Target interpreter",
             "required": true,
             "defaultValue": "bash",
-            "helpMarkDown": "Target interpreter: bash or powershell"
+            "helpMarkDown": "Target interpreter: bash/powershel/python"
         },
         {
             "name": "targetType",
@@ -81,16 +81,36 @@
         {
             "name": "delay",
             "type": "string",
-            "label": "Delay in seconds before repeat command",
+            "label": "Delay in seconds before retry script",
             "defaultValue": "60",
             "required": false
         },
         {
-            "name": "repeatTimes",
+            "name": "retryTimes",
             "type": "string",
-            "label": "How many timest to repeat",
+            "label": "How many times to retry",
             "defaultValue": "5",
             "required": false
+        },
+        {
+            "name": "directoryFormat",
+            "type": "radio",
+            "label": "Current direcory format",
+            "required": false,
+            "defaultValue": "unix",
+            "helpMarkDown": "Some shells requires to call script with Windows path (e.g. powershell on windows agent). Please try that option if you see errors about not founding script in path",
+            "options": {
+                "unix": "Unix",
+                "windows": "Windows"
+            }
+        },
+        {
+            "name": "scriptExtension",
+            "type": "string",
+            "label": "Script extension",
+            "defaultValue": "",
+            "required": false,
+            "helpMarkDown":"Some interpreters requires extension (e.g. powershell requires ps1). "
         },
         {
             "name": "workingDirectory",

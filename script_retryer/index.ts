@@ -4,31 +4,42 @@ import tl = require('azure-pipelines-task-lib/task');
 import tr = require('azure-pipelines-task-lib/toolrunner');
 var uuidV4 = require('uuid/v4');
 
-async function translateDirectoryPath(bashPath: string, directoryPath: string): Promise<string> {
-    let bashPwd = tl.tool(bashPath)
+async function translateDirectoryPath(directoryFormat: string, directoryPath: string): Promise<string> {
+    let commandPath = tl.which("bash", true);
+    let commandPwd = tl.tool(commandPath)
         .arg('--noprofile')
         .arg('--norc')
         .arg('-c')
         .arg('pwd');
+    if (directoryFormat == 'WINDOWS'){
+        commandPath = tl.which("cmd", true);
+        commandPwd = tl.tool(commandPath)
+            .arg('/D')
+            .arg('/E:ON')
+            .arg('/V:OFF')
+            .arg('/S')
+            .arg('/C')
+            .arg('cd');
+    }
 
-    let bashPwdOptions = <tr.IExecOptions>{
+    let commandPwdOptions = <tr.IExecOptions>{
         cwd: directoryPath,
         failOnStdErr: true,
         errStream: process.stdout,
         outStream: process.stdout,
         ignoreReturnCode: false
     };
-    let pwdOutput = '';
-    bashPwd.on('stdout', (data) => {
-        pwdOutput += data.toString();
+    let commandOutput = '';
+    commandPwd.on('stdout', (data) => {
+        commandOutput += data.toString();
     });
-    await bashPwd.exec(bashPwdOptions);
-    pwdOutput = pwdOutput.trim();
-    if (!pwdOutput) {
+    await commandPwd.exec(commandPwdOptions);
+    commandOutput = commandOutput.trim();
+    if (!commandOutput) {
         throw new Error(tl.loc('JS_TranslatePathFailed', directoryPath));
     }
 
-    return `${pwdOutput}`;
+    return `${commandOutput}`;
 }
 
 async function sleep(ms) {
@@ -48,14 +59,16 @@ async function run() {
         let input_arguments: string;
         let input_script: string;
         let input_targetType: string = tl.getInput('targetType') || '';
+        let input_directoryFormat: string = tl.getInput('directoryFormat') || 'unix';
         let input_targetInterperter: string = tl.getInput('targetInterperter') || 'bash';
+        let input_scriptExtension: string = tl.getInput('scriptExtension') || '';
         let input_delay: number = parseInt(tl.getInput('delay'));
-        let input_repeatTimes: number = parseInt(tl.getInput('repeatTimes')) ;
+        let input_retryTimes: number = parseInt(tl.getInput('retryTimes')) ;
         if (isNaN(input_delay)){
             throw new Error(tl.loc('JS_InvalidInput', "delay"));
         }
-        if (isNaN(input_repeatTimes)){
-            throw new Error(tl.loc('JS_InvalidInput', "repeat"));
+        if (isNaN(input_retryTimes)){
+            throw new Error(tl.loc('JS_InvalidInput', "retry"));
         }
         if (input_targetType.toUpperCase() == 'FILEPATH') {
             input_filePath = tl.getPathInput('filePath', /*required*/ true);
@@ -74,10 +87,9 @@ async function run() {
         let interpreterPath: string = tl.which(input_targetInterperter, true);
         let contents: string;
         if (input_targetType.toUpperCase() == 'FILEPATH') {
-            // Translate the target file path from Windows to the Linux file system.
             let targetFilePath: string;
             if (process.platform == 'win32') {
-                targetFilePath = await translateDirectoryPath(interpreterPath, path.dirname(input_filePath)) + '/' + path.basename(input_filePath);
+                targetFilePath = await translateDirectoryPath(input_directoryFormat.toUpperCase(), path.dirname(input_filePath)) + '/' + path.basename(input_filePath);
             }
             else {
                 targetFilePath = input_filePath;
@@ -87,7 +99,7 @@ async function run() {
             const stats: fs.Stats = tl.stats(input_filePath);
             // Check file's executable bit.
             if ((stats.mode & 1) > 0) {
-                contents = `bash '${targetFilePath.replace("'", "'\\''")}' ${input_arguments}`.trim();
+                contents = `${input_targetInterperter} '${targetFilePath.replace("'", "'\\''")}' ${input_arguments}`.trim();
             }
             else {
                 tl.debug(`File permissions: ${stats.mode}`);
@@ -109,7 +121,10 @@ async function run() {
         tl.assertAgent('2.115.0');
         let tempDirectory = tl.getVariable('agent.tempDirectory');
         tl.checkPath(tempDirectory, `${tempDirectory} (agent.tempDirectory)`);
-        let fileName = uuidV4() + '.sh';
+        let fileName = uuidV4();
+        if (input_scriptExtension != ""){
+            fileName = fileName + "." + input_scriptExtension;
+        }
         let filePath = path.join(tempDirectory, fileName);
         await fs.writeFileSync(
             filePath,
@@ -118,7 +133,11 @@ async function run() {
 
         // Translate the script file path from Windows to the Linux file system.
         if (process.platform == 'win32') {
-            filePath = await translateDirectoryPath(interpreterPath, tempDirectory) + '/' + fileName;
+            let pathLimiter= '/'
+            if (input_directoryFormat.toUpperCase() == 'WINDOWS'){
+                pathLimiter= '\\'
+            }
+            filePath = await translateDirectoryPath(input_directoryFormat.toUpperCase(), tempDirectory) + pathLimiter + fileName;
         }
 
         // Create the tool runner.
@@ -157,11 +176,11 @@ async function run() {
         let runTimes = 1;
         let runSuccess = false;
         let result = tl.TaskResult.Succeeded;
-        while(runTimes< input_repeatTimes+1 && !runSuccess){
+        while(runTimes< input_retryTimes+1 && !runSuccess){
             result = tl.TaskResult.Succeeded;
             runSuccess = true
 
-            // Run bash.
+            // Run script
             let exitCode: number = await interpreter.exec(options);
 
             // Fail on exit code.
@@ -184,6 +203,7 @@ async function run() {
                 console.log(tl.loc('Waiting', input_delay));
                 runTimes = runTimes +1;
                 runSuccess = false;
+                stderrFailure = false;
                 await sleep(input_delay*1000);
             }
         }

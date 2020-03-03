@@ -1,5 +1,5 @@
 {
-  "name": "command-repeater",
+  "name": "script-retryer",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -8,22 +8,22 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ice-ship/command-repeater.git"
+    "url": "git+https://github.com/ice-ship/script-retryer.git"
   },
   "keywords": [
-    "command",
-    "repeat",
+    "script",
+    "retry",
     "bash",
     "powershell"
   ],
-  "author": "Lukasz Cymanowski (lukcym@wp.pl)",
+  "author": "Lukasz Cymanowski",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/ice-ship/command-repeater/issues"
+    "url": "https://github.com/ice-ship/script-retryer/issues"
   },
-  "homepage": "https://github.com/ice-ship/command-repeater#readme",
+  "homepage": "https://github.com/ice-ship/script-retryer#readme",
   "dependencies": {
-    "azure-pipelines-task-lib": "2.9.3"    
+    "azure-pipelines-task-lib": "2.9.3"
   },
   "devDependencies": {
     "@types/node": "^13.7.7",

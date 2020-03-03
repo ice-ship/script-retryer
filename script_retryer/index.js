@@ -13,30 +13,41 @@ const fs = require("fs");
 const path = require("path");
 const tl = require("azure-pipelines-task-lib/task");
 var uuidV4 = require('uuid/v4');
-function translateDirectoryPath(bashPath, directoryPath) {
+function translateDirectoryPath(directoryFormat, directoryPath) {
     return __awaiter(this, void 0, void 0, function* () {
-        let bashPwd = tl.tool(bashPath)
+        let commandPath = tl.which("bash", true);
+        let commandPwd = tl.tool(commandPath)
             .arg('--noprofile')
             .arg('--norc')
             .arg('-c')
             .arg('pwd');
-        let bashPwdOptions = {
+        if (directoryFormat == 'WINDOWS') {
+            commandPath = tl.which("cmd", true);
+            commandPwd = tl.tool(commandPath)
+                .arg('/D')
+                .arg('/E:ON')
+                .arg('/V:OFF')
+                .arg('/S')
+                .arg('/C')
+                .arg('cd');
+        }
+        let commandPwdOptions = {
             cwd: directoryPath,
             failOnStdErr: true,
             errStream: process.stdout,
             outStream: process.stdout,
             ignoreReturnCode: false
         };
-        let pwdOutput = '';
-        bashPwd.on('stdout', (data) => {
-            pwdOutput += data.toString();
+        let commandOutput = '';
+        commandPwd.on('stdout', (data) => {
+            commandOutput += data.toString();
         });
-        yield bashPwd.exec(bashPwdOptions);
-        pwdOutput = pwdOutput.trim();
-        if (!pwdOutput) {
+        yield commandPwd.exec(commandPwdOptions);
+        commandOutput = commandOutput.trim();
+        if (!commandOutput) {
             throw new Error(tl.loc('JS_TranslatePathFailed', directoryPath));
         }
-        return `${pwdOutput}`;
+        return `${commandOutput}`;
     });
 }
 function sleep(ms) {
@@ -57,14 +68,16 @@ function run() {
             let input_arguments;
             let input_script;
             let input_targetType = tl.getInput('targetType') || '';
+            let input_directoryFormat = tl.getInput('directoryFormat') || 'unix';
             let input_targetInterperter = tl.getInput('targetInterperter') || 'bash';
+            let input_scriptExtension = tl.getInput('scriptExtension') || '';
             let input_delay = parseInt(tl.getInput('delay'));
-            let input_repeatTimes = parseInt(tl.getInput('repeatTimes'));
+            let input_retryTimes = parseInt(tl.getInput('retryTimes'));
             if (isNaN(input_delay)) {
                 throw new Error(tl.loc('JS_InvalidInput', "delay"));
             }
-            if (isNaN(input_repeatTimes)) {
-                throw new Error(tl.loc('JS_InvalidInput', "repeat"));
+            if (isNaN(input_retryTimes)) {
+                throw new Error(tl.loc('JS_InvalidInput', "retry"));
             }
             if (input_targetType.toUpperCase() == 'FILEPATH') {
                 input_filePath = tl.getPathInput('filePath', /*required*/ true);
@@ -81,10 +94,9 @@ function run() {
             let interpreterPath = tl.which(input_targetInterperter, true);
             let contents;
             if (input_targetType.toUpperCase() == 'FILEPATH') {
-                // Translate the target file path from Windows to the Linux file system.
                 let targetFilePath;
                 if (process.platform == 'win32') {
-                    targetFilePath = (yield translateDirectoryPath(interpreterPath, path.dirname(input_filePath))) + '/' + path.basename(input_filePath);
+                    targetFilePath = (yield translateDirectoryPath(input_directoryFormat.toUpperCase(), path.dirname(input_filePath))) + '/' + path.basename(input_filePath);
                 }
                 else {
                     targetFilePath = input_filePath;
@@ -93,7 +105,7 @@ function run() {
                 const stats = tl.stats(input_filePath);
                 // Check file's executable bit.
                 if ((stats.mode & 1) > 0) {
-                    contents = `bash '${targetFilePath.replace("'", "'\\''")}' ${input_arguments}`.trim();
+                    contents = `${input_targetInterperter} '${targetFilePath.replace("'", "'\\''")}' ${input_arguments}`.trim();
                 }
                 else {
                     tl.debug(`File permissions: ${stats.mode}`);
@@ -113,12 +125,19 @@ function run() {
             tl.assertAgent('2.115.0');
             let tempDirectory = tl.getVariable('agent.tempDirectory');
             tl.checkPath(tempDirectory, `${tempDirectory} (agent.tempDirectory)`);
-            let fileName = uuidV4() + '.sh';
+            let fileName = uuidV4();
+            if (input_scriptExtension != "") {
+                fileName = fileName + "." + input_scriptExtension;
+            }
             let filePath = path.join(tempDirectory, fileName);
             yield fs.writeFileSync(filePath, contents, { encoding: 'utf8' });
             // Translate the script file path from Windows to the Linux file system.
             if (process.platform == 'win32') {
-                filePath = (yield translateDirectoryPath(interpreterPath, tempDirectory)) + '/' + fileName;
+                let pathLimiter = '/';
+                if (input_directoryFormat.toUpperCase() == 'WINDOWS') {
+                    pathLimiter = '\\';
+                }
+                filePath = (yield translateDirectoryPath(input_directoryFormat.toUpperCase(), tempDirectory)) + pathLimiter + fileName;
             }
             // Create the tool runner.
             console.log('========================== Starting Command Output ===========================');
@@ -155,10 +174,10 @@ function run() {
             let runTimes = 1;
             let runSuccess = false;
             let result = tl.TaskResult.Succeeded;
-            while (runTimes < input_repeatTimes + 1 && !runSuccess) {
+            while (runTimes < input_retryTimes + 1 && !runSuccess) {
                 result = tl.TaskResult.Succeeded;
                 runSuccess = true;
-                // Run bash.
+                // Run script
                 let exitCode = yield interpreter.exec(options);
                 // Fail on exit code.
                 if (exitCode !== 0) {
@@ -178,6 +197,7 @@ function run() {
                     console.log(tl.loc('Waiting', input_delay));
                     runTimes = runTimes + 1;
                     runSuccess = false;
+                    stderrFailure = false;
                     yield sleep(input_delay * 1000);
                 }
             }
