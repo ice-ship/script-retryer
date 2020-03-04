@@ -2,8 +2,11 @@
     "manifestVersion": 1,
     "id": "script-retryer",
     "name": "Script Retryer tool",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "publisher": "LukaszCymanowski",
+    "galleryFlags": [
+        "Preview"
+    ],
     "targets": [
         {
             "id": "Microsoft.VisualStudio.Services"
