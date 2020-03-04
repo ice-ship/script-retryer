@@ -93,18 +93,6 @@
             "required": false
         },
         {
-            "name": "directoryFormat",
-            "type": "radio",
-            "label": "Current direcory format",
-            "required": false,
-            "defaultValue": "unix",
-            "helpMarkDown": "Some shells requires to call script with Windows path (e.g. powershell on windows agent). Please try that option if you see errors about not founding script in path",
-            "options": {
-                "unix": "Unix",
-                "windows": "Windows"
-            }
-        },
-        {
             "name": "scriptExtension",
             "type": "string",
             "label": "Script extension",

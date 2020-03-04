@@ -13,24 +13,16 @@ const fs = require("fs");
 const path = require("path");
 const tl = require("azure-pipelines-task-lib/task");
 var uuidV4 = require('uuid/v4');
-function translateDirectoryPath(directoryFormat, directoryPath) {
+function translateDirectoryPath(directoryPath) {
     return __awaiter(this, void 0, void 0, function* () {
-        let commandPath = tl.which("bash", true);
+        let commandPath = tl.which("cmd", true);
         let commandPwd = tl.tool(commandPath)
-            .arg('--noprofile')
-            .arg('--norc')
-            .arg('-c')
-            .arg('pwd');
-        if (directoryFormat == 'WINDOWS') {
-            commandPath = tl.which("cmd", true);
-            commandPwd = tl.tool(commandPath)
-                .arg('/D')
-                .arg('/E:ON')
-                .arg('/V:OFF')
-                .arg('/S')
-                .arg('/C')
-                .arg('cd');
-        }
+            .arg('/D')
+            .arg('/E:ON')
+            .arg('/V:OFF')
+            .arg('/S')
+            .arg('/C')
+            .arg('cd');
         let commandPwdOptions = {
             cwd: directoryPath,
             failOnStdErr: true,
@@ -68,7 +60,6 @@ function run() {
             let input_arguments;
             let input_script;
             let input_targetType = tl.getInput('targetType') || '';
-            let input_directoryFormat = tl.getInput('directoryFormat') || 'unix';
             let input_targetInterperter = tl.getInput('targetInterperter') || 'bash';
             let input_scriptExtension = tl.getInput('scriptExtension') || '';
             let input_delay = parseInt(tl.getInput('delay'));
@@ -96,7 +87,7 @@ function run() {
             if (input_targetType.toUpperCase() == 'FILEPATH') {
                 let targetFilePath;
                 if (process.platform == 'win32') {
-                    targetFilePath = (yield translateDirectoryPath(input_directoryFormat.toUpperCase(), path.dirname(input_filePath))) + '/' + path.basename(input_filePath);
+                    targetFilePath = (yield translateDirectoryPath(path.dirname(input_filePath))) + '/' + path.basename(input_filePath);
                 }
                 else {
                     targetFilePath = input_filePath;
@@ -134,10 +125,8 @@ function run() {
             // Translate the script file path from Windows to the Linux file system.
             if (process.platform == 'win32') {
                 let pathLimiter = '/';
-                if (input_directoryFormat.toUpperCase() == 'WINDOWS') {
-                    pathLimiter = '\\';
-                }
-                filePath = (yield translateDirectoryPath(input_directoryFormat.toUpperCase(), tempDirectory)) + pathLimiter + fileName;
+                pathLimiter = '\\';
+                filePath = (yield translateDirectoryPath(tempDirectory)) + pathLimiter + fileName;
             }
             // Create the tool runner.
             console.log('========================== Starting Command Output ===========================');
