@@ -10,7 +10,7 @@
     "version": {
         "Major": 0,
         "Minor": 1,
-        "Patch": 2
+        "Patch": 4
     },
     "instanceNameFormat": "Script retryer",
     "execution": {
@@ -32,7 +32,7 @@
             "label": "Target interpreter",
             "required": true,
             "defaultValue": "bash",
-            "helpMarkDown": "Target interpreter: bash/powershel/python"
+            "helpMarkDown": "Target interpreter: bash/powershel/python, something which will be found by \"which\" command"
         },
         {
             "name": "targetType",
@@ -81,14 +81,14 @@
         {
             "name": "delay",
             "type": "string",
-            "label": "Delay in seconds before retry script",
+            "label": "Delay in seconds before retry script in case of failure",
             "defaultValue": "60",
             "required": false
         },
         {
             "name": "retryTimes",
             "type": "string",
-            "label": "How many times to retry",
+            "label": "How many times it should try to retry script",
             "defaultValue": "5",
             "required": false
         },
@@ -98,7 +98,7 @@
             "label": "Script extension",
             "defaultValue": "",
             "required": false,
-            "helpMarkDown":"Some interpreters requires extension (e.g. powershell requires ps1). "
+            "helpMarkDown":"Some interpreters requires specific file extension (e.g. powershell requires ps1)."
         },
         {
             "name": "workingDirectory",
@@ -120,12 +120,12 @@
     ],
     "messages": {
         "GeneratingScript": "Generating script.",
-        "JS_ExitCode": "Bash exited with code '%s'.",
+        "JS_ExitCode": "Script exited with code '%s'.",
         "JS_FormattedCommand": "Formatted command: %s",
         "JS_InvalidFilePath": "Invalid file path '%s'.",
         "JS_ScriptContents": "Script contents:",
-        "JS_Stderr": "Bash wrote one or more lines to the standard error stream.",
-        "JS_TranslatePathFailed": "Unable to translate the path '%s' to the Linux file system.",
+        "JS_Stderr": "Script wrote one or more lines to the standard error stream.",
+        "JS_TranslatePathFailed": "Unable to translate the path '%s'.",
         "JS_InvalidInput": "Incorrect value setup for %s field, number required",
         "JS_MissingExecutableBit": "Executable bit is not set on target script!",
         "ErrorDetected":"Error detected in attempt %s!",

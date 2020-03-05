@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "script-retryer",
     "name": "Script Retryer tool",
-    "version": "0.0.3",
+    "version": "0.0.5",
     "publisher": "LukaszCymanowski",
     "public": true,
     "galleryFlags": [
@@ -13,7 +13,7 @@
             "id": "Microsoft.VisualStudio.Services"
         }
     ],    
-    "description": "That task can be used to retry several times with delays specyfied scrip. Inline script supported. Supported languages: bash, powershell, python",
+    "description": "That task can be used to retry several times with some delay specified script. Inline script supported. Supported languages: bash, powershell, python. It works fine on Unix and Windows agents.",
     "categories": [
         "Azure Pipelines"
     ],
