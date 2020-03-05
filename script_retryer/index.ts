@@ -50,7 +50,7 @@ async function run() {
         let input_filePath: string;
         let input_arguments: string;
         let input_script: string;
-        let input_targetType: string = tl.getInput('targetType') || '';
+        let input_targetType: string = tl.getInput('targetType') || 'inline';
         let input_targetInterperter: string = tl.getInput('targetInterperter') || 'bash';
         let input_scriptExtension: string = tl.getInput('scriptExtension') || '';
         let input_delay: number = parseInt(tl.getInput('delay'));

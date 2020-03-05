@@ -59,7 +59,7 @@ function run() {
             let input_filePath;
             let input_arguments;
             let input_script;
-            let input_targetType = tl.getInput('targetType') || '';
+            let input_targetType = tl.getInput('targetType') || 'inline';
             let input_targetInterperter = tl.getInput('targetInterperter') || 'bash';
             let input_scriptExtension = tl.getInput('scriptExtension') || '';
             let input_delay = parseInt(tl.getInput('delay'));
