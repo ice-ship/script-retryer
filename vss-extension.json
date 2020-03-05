@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "script-retryer",
     "name": "Script Retryer tool",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "publisher": "LukaszCymanowski",
     "public": true,
     "galleryFlags": [
