@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/ice-ship/script-retryer#readme",
   "dependencies": {
-    "azure-pipelines-task-lib": "2.9.3"
+    "azure-pipelines-task-lib": "4.3.1"
   },
   "devDependencies": {
     "@types/node": "^13.7.7",
